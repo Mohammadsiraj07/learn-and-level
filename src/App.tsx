@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -13,6 +13,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
 import Marketplace from "./pages/Marketplace";
 import NotFound from "./pages/NotFound";
 import Matches from "./pages/Matches";
@@ -22,9 +23,26 @@ import AdminTestRequests from "./pages/AdminTestRequests";
 
 const queryClient = new QueryClient();
 
+// Check if profile is completed to at least 80%
+const isProfileCompleted = () => {
+  return localStorage.getItem("profileCompleted") === "true";
+};
+
+// Profile requirement checker component
+const ProfileRequiredRoute = ({ children }: { children: React.ReactNode }) => {
+  const location = useLocation();
+  
+  if (!isProfileCompleted()) {
+    // Redirect to profile page but remember where they wanted to go
+    return <Navigate to="/profile" state={{ from: location }} replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light">
+    <ThemeProvider defaultTheme="dark">
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
@@ -35,29 +53,44 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } />
               <Route path="/marketplace" element={
                 <ProtectedRoute>
-                  <Marketplace />
+                  <ProfileRequiredRoute>
+                    <Marketplace />
+                  </ProfileRequiredRoute>
                 </ProtectedRoute>
               } />
               <Route path="/matches" element={
                 <ProtectedRoute>
-                  <Matches />
+                  <ProfileRequiredRoute>
+                    <Matches />
+                  </ProfileRequiredRoute>
                 </ProtectedRoute>
               } />
               <Route path="/schedule" element={
                 <ProtectedRoute>
-                  <Schedule />
+                  <ProfileRequiredRoute>
+                    <Schedule />
+                  </ProfileRequiredRoute>
                 </ProtectedRoute>
               } />
               <Route path="/test" element={
                 <ProtectedRoute>
-                  <Test />
+                  <ProfileRequiredRoute>
+                    <Test />
+                  </ProfileRequiredRoute>
                 </ProtectedRoute>
               } />
               <Route path="/admin/test-requests" element={
                 <ProtectedRoute>
-                  <AdminTestRequests />
+                  <ProfileRequiredRoute>
+                    <AdminTestRequests />
+                  </ProfileRequiredRoute>
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
