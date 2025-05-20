@@ -42,7 +42,7 @@ export function Navbar() {
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2 group">
             <span className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 flex items-center justify-center text-primary-foreground font-semibold transition-transform group-hover:scale-110">S</span>
-            <span className="font-playfair text-lg font-semibold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent group-hover:from-purple-400 group-hover:to-indigo-300 transition-colors">SkillSwap</span>
+            <span className="font-playfair text-lg font-semibold dark:bg-gradient-to-r dark:from-white dark:to-purple-200 bg-gradient-to-r from-purple-700 to-indigo-700 bg-clip-text text-transparent group-hover:from-purple-600 group-hover:to-indigo-600 dark:group-hover:from-purple-400 dark:group-hover:to-indigo-300 transition-colors">SkillSwap</span>
           </Link>
           <nav className="hidden md:flex items-center gap-1">
             <NavigationMenu>
