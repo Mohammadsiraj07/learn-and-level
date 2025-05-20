@@ -2,8 +2,12 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Sparkles, Users, Calendar, BookOpen, BadgeCheck, Search, Award } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { AnimatePresence, motion } from "framer-motion";
 
 export function HeroSection() {
+  const { user } = useAuth();
+
   return (
     <section className="relative py-20 md:py-32 overflow-hidden">
       <div className="absolute inset-0 bg-hero-pattern -z-10"></div>
@@ -21,13 +25,27 @@ export function HeroSection() {
             <p className="text-lg text-muted-foreground max-w-md">
               A peer-to-peer platform where you can teach what you know and learn what you don't. No payments, just skills.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 mt-4">
-              <Link to="/signup">
-                <Button size="lg" className="w-full sm:w-auto group transition-all duration-300 hover:scale-105">
-                  Join SkillSwap
-                  <Users className="ml-2 h-4 w-4 transition-transform group-hover:scale-110" />
-                </Button>
-              </Link>
+            
+            {/* Conditionally render the CTA buttons with animation */}
+            <div className="flex flex-col sm:flex-row gap-4 mt-4 min-h-[44px]">
+              <AnimatePresence>
+                {!user && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Link to="/signup">
+                      <Button size="lg" className="w-full sm:w-auto group transition-all duration-300 hover:scale-105">
+                        Join SkillSwap
+                        <Users className="ml-2 h-4 w-4 transition-transform group-hover:scale-110" />
+                      </Button>
+                    </Link>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
               <Link to="/marketplace">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto group hover:bg-accent/40 transition-all duration-300">
                   Explore Skills
