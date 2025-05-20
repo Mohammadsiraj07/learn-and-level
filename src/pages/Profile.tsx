@@ -17,6 +17,21 @@ import { ProfileProgress } from "@/components/profile/ProfileProgress";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { CompletionModal } from "@/components/profile/CompletionModal";
 
+// Define interface for profile data to resolve type issues
+interface ProfileData {
+  id: string;
+  full_name: string | null;
+  location: string | null;
+  role: "student" | "professional" | "";
+  teach_skills: string[];
+  learn_skills: string[];
+  bio: string | null;
+  preferred_language: string | null;
+  social_link: string | null;
+  avatar_url: string | null;
+  updated_at: string | null;
+}
+
 // Define the schema for profile data
 const profileSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -59,11 +74,12 @@ const Profile = () => {
       }
 
       try {
+        // Use type assertion for Supabase query
         const { data, error } = await supabase
-          .from("profiles")
+          .from('profiles')
           .select("*")
           .eq("id", user.id)
-          .single();
+          .single() as { data: ProfileData | null, error: any };
           
         if (error) throw error;
         
@@ -149,9 +165,9 @@ const Profile = () => {
     
     setIsLoading(true);
     try {
-      // Update the profile in Supabase
+      // Update the profile in Supabase with type assertion
       const { error } = await supabase
-        .from("profiles")
+        .from('profiles')
         .upsert({
           id: user.id,
           full_name: data.fullName,
@@ -163,7 +179,7 @@ const Profile = () => {
           preferred_language: data.language,
           social_link: data.socialLink,
           updated_at: new Date().toISOString(),
-        });
+        } as any);
 
       if (error) throw error;
       
@@ -185,10 +201,10 @@ const Profile = () => {
           .from("avatars")
           .getPublicUrl(filePath);
           
-        // Update profile with avatar URL
+        // Update profile with avatar URL using type assertion
         await supabase
-          .from("profiles")
-          .update({ avatar_url: urlData.publicUrl })
+          .from('profiles')
+          .update({ avatar_url: urlData.publicUrl } as any)
           .eq("id", user.id);
       }
       
