@@ -13,7 +13,6 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Auth from "./pages/Auth";
-import Profile from "./pages/Profile";
 import Marketplace from "./pages/Marketplace";
 import NotFound from "./pages/NotFound";
 import Matches from "./pages/Matches";
@@ -22,23 +21,6 @@ import Test from "./pages/Test";
 import AdminTestRequests from "./pages/AdminTestRequests";
 
 const queryClient = new QueryClient();
-
-// Check if profile is completed to at least 80%
-const isProfileCompleted = () => {
-  return localStorage.getItem("profileCompleted") === "true";
-};
-
-// Profile requirement checker component
-const ProfileRequiredRoute = ({ children }: { children: React.ReactNode }) => {
-  const location = useLocation();
-  
-  if (!isProfileCompleted()) {
-    // Redirect to profile page but remember where they wanted to go
-    return <Navigate to="/profile" state={{ from: location }} replace />;
-  }
-  
-  return <>{children}</>;
-};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -53,44 +35,29 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } />
               <Route path="/marketplace" element={
                 <ProtectedRoute>
-                  <ProfileRequiredRoute>
-                    <Marketplace />
-                  </ProfileRequiredRoute>
+                  <Marketplace />
                 </ProtectedRoute>
               } />
               <Route path="/matches" element={
                 <ProtectedRoute>
-                  <ProfileRequiredRoute>
-                    <Matches />
-                  </ProfileRequiredRoute>
+                  <Matches />
                 </ProtectedRoute>
               } />
               <Route path="/schedule" element={
                 <ProtectedRoute>
-                  <ProfileRequiredRoute>
-                    <Schedule />
-                  </ProfileRequiredRoute>
+                  <Schedule />
                 </ProtectedRoute>
               } />
               <Route path="/test" element={
                 <ProtectedRoute>
-                  <ProfileRequiredRoute>
-                    <Test />
-                  </ProfileRequiredRoute>
+                  <Test />
                 </ProtectedRoute>
               } />
               <Route path="/admin/test-requests" element={
                 <ProtectedRoute>
-                  <ProfileRequiredRoute>
-                    <AdminTestRequests />
-                  </ProfileRequiredRoute>
+                  <AdminTestRequests />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
