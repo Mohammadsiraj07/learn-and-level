@@ -1,286 +1,174 @@
 
+import { useState, useEffect } from 'react';
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { MessageCircle, Video, Clock, Check, X } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useAuth } from '@/contexts/AuthContext';
+import { MatchingService, MatchedUser } from '@/services/MatchingService';
+import { MessageCircle, Video, Users } from 'lucide-react';
 
-// Sample data
-const matchesData = [
-  {
-    id: 1,
-    name: "Alex Johnson",
-    skills: [
-      { name: "JavaScript", level: "Advanced" },
-      { name: "React", level: "Intermediate" },
-      { name: "Node.js", level: "Intermediate" }
-    ],
-    learningSkills: [
-      { name: "Python", level: "Beginner" },
-      { name: "Machine Learning", level: "Beginner" }
-    ],
-    matchScore: 92,
-    lastActive: "2 hours ago",
-    avatar: "/placeholder.svg",
-    status: "online"
-  },
-  {
-    id: 2,
-    name: "Jamie Smith",
-    skills: [
-      { name: "UX Design", level: "Advanced" },
-      { name: "Figma", level: "Advanced" },
-      { name: "Adobe XD", level: "Intermediate" }
-    ],
-    learningSkills: [
-      { name: "Frontend Development", level: "Beginner" },
-      { name: "React", level: "Beginner" }
-    ],
-    matchScore: 87,
-    lastActive: "1 day ago",
-    avatar: "/placeholder.svg",
-    status: "away"
-  },
-  {
-    id: 3,
-    name: "Taylor Davis",
-    skills: [
-      { name: "Python", level: "Advanced" },
-      { name: "Data Science", level: "Intermediate" },
-      { name: "SQL", level: "Advanced" }
-    ],
-    learningSkills: [
-      { name: "JavaScript", level: "Beginner" },
-      { name: "React Native", level: "Beginner" }
-    ],
-    matchScore: 83,
-    lastActive: "Just now",
-    avatar: "/placeholder.svg",
-    status: "online"
-  },
-  {
-    id: 4,
-    name: "Morgan Williams",
-    skills: [
-      { name: "Digital Marketing", level: "Advanced" },
-      { name: "SEO", level: "Intermediate" },
-      { name: "Content Writing", level: "Advanced" }
-    ],
-    learningSkills: [
-      { name: "Graphic Design", level: "Beginner" },
-      { name: "Social Media Management", level: "Intermediate" }
-    ],
-    matchScore: 79,
-    lastActive: "3 days ago",
-    avatar: "/placeholder.svg",
-    status: "offline"
-  },
-  {
-    id: 5,
-    name: "Riley Brown",
-    skills: [
-      { name: "Photography", level: "Advanced" },
-      { name: "Video Editing", level: "Intermediate" },
-      { name: "Adobe Premiere", level: "Intermediate" }
-    ],
-    learningSkills: [
-      { name: "3D Modeling", level: "Beginner" },
-      { name: "Animation", level: "Beginner" }
-    ],
-    matchScore: 75,
-    lastActive: "5 hours ago",
-    avatar: "/placeholder.svg",
-    status: "online"
-  }
-];
+const SkillBadge = ({ skill, isMatching = false }: { skill: string; isMatching?: boolean }) => (
+  <Badge 
+    variant="outline"
+    className={`${isMatching ? 'bg-primary/20 border-primary/40' : 'bg-secondary/20'}`}
+  >
+    {skill}
+  </Badge>
+);
 
-type SkillBadgeProps = {
-  name: string;
-  level: string;
-  variant?: "sharing" | "learning";
-}
-
-const SkillBadge = ({ name, level, variant = "sharing" }: SkillBadgeProps) => {
-  const isSharing = variant === "sharing";
-  
+const MatchCard = ({ match }: { match: MatchedUser }) => {
   return (
-    <HoverCard>
-      <HoverCardTrigger asChild>
-        <Badge 
-          variant="outline"
-          className={cn(
-            "transition-all duration-300 hover:scale-105",
-            isSharing 
-              ? "bg-primary/10 hover:bg-primary/20" 
-              : "bg-secondary/20 hover:bg-secondary/30",
-            "cursor-default"
-          )}
-        >
-          {name}
-        </Badge>
-      </HoverCardTrigger>
-      <HoverCardContent className="w-auto">
-        <div className="flex flex-col gap-1">
-          <p className="text-sm font-medium">{name}</p>
-          <div className="flex items-center gap-2">
-            <span className={cn(
-              "h-2 w-2 rounded-full",
-              level === "Beginner" ? "bg-emerald-400" : 
-              level === "Intermediate" ? "bg-blue-400" : "bg-violet-500"
-            )} />
-            <span className="text-xs text-muted-foreground">{level}</span>
-          </div>
-        </div>
-      </HoverCardContent>
-    </HoverCard>
-  );
-};
-
-type StatusBadgeProps = {
-  status: string;
-}
-
-const StatusBadge = ({ status }: StatusBadgeProps) => {
-  return (
-    <span 
-      className={cn(
-        "absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background",
-        status === "online" ? "bg-green-500" : 
-        status === "away" ? "bg-yellow-500" : "bg-muted"
-      )}
-    />
-  );
-};
-
-const MatchCard = ({ match }: { match: typeof matchesData[0] }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  
-  return (
-    <Card 
-      className={cn(
-        "transition-all duration-300 group backdrop-blur-sm",
-        isHovered 
-          ? "shadow-lg ring-1 ring-primary/20 translate-y-[-4px]" 
-          : "hover:shadow-md",
-        "overflow-hidden"
-      )}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div className={cn(
-        "absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity duration-500",
-        isHovered ? "opacity-10" : "opacity-0",
-        "from-primary/20 to-accent/20"
-      )} />
-      
-      <div className="absolute top-3 right-3 z-10">
-        <Badge 
-          className={cn(
-            "bg-primary/80 text-primary-foreground font-medium",
-            "shadow-sm transition-all duration-300",
-          )}
-        >
-          {match.matchScore}% Match
-        </Badge>
-      </div>
-      
-      <CardHeader className="flex flex-row items-center gap-4 pb-2">
-        <div className="relative">
-          <Avatar className="h-12 w-12 ring-2 ring-background shadow-sm">
-            <AvatarImage src={match.avatar} alt={match.name} className="object-cover" />
-            <AvatarFallback>{match.name.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <StatusBadge status={match.status} />
-        </div>
+    <Card className="hover:shadow-md transition-shadow">
+      <CardHeader className="flex flex-row items-center gap-4 pb-4">
+        <Avatar className="h-16 w-16">
+          <AvatarImage src={match.avatar_url || undefined} alt={match.full_name} />
+          <AvatarFallback className="text-lg">
+            {match.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
         
-        <div>
-          <h3 className="text-xl font-semibold">{match.name}</h3>
-          <p className="text-sm text-muted-foreground flex items-center gap-1">
-            <Clock className="h-3 w-3 opacity-70" />
-            {match.lastActive}
+        <div className="flex-1">
+          <h3 className="text-xl font-semibold">{match.full_name}</h3>
+          <p className="text-sm text-muted-foreground">
+            {match.matchingTeachSkills.length} skill{match.matchingTeachSkills.length !== 1 ? 's' : ''} they can teach you
           </p>
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4 pt-3">
-        <div className="animate-fade-in">
-          <p className="text-sm font-medium mb-1.5 text-muted-foreground">Skills to share:</p>
-          <div className="flex flex-wrap gap-1.5">
-            {match.skills.map((skill) => (
+      <CardContent className="space-y-4">
+        <div>
+          <p className="text-sm font-medium mb-2 text-green-600">
+            ✅ They can teach you:
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {match.skills_teach.map((skill) => (
               <SkillBadge 
-                key={skill.name} 
-                name={skill.name} 
-                level={skill.level}
-                variant="sharing"
+                key={skill} 
+                skill={skill} 
+                isMatching={match.matchingTeachSkills.includes(skill)}
               />
             ))}
           </div>
         </div>
         
-        <div className="animate-fade-in" style={{ animationDelay: "100ms" }}>
-          <p className="text-sm font-medium mb-1.5 text-muted-foreground">Wants to learn:</p>
-          <div className="flex flex-wrap gap-1.5">
-            {match.learningSkills.map((skill) => (
+        <div>
+          <p className="text-sm font-medium mb-2 text-blue-600">
+            📚 They want to learn:
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {match.skills_learn.map((skill) => (
               <SkillBadge 
-                key={skill.name} 
-                name={skill.name} 
-                level={skill.level}
-                variant="learning"
+                key={skill} 
+                skill={skill} 
+                isMatching={match.matchingLearnSkills.includes(skill)}
               />
             ))}
           </div>
         </div>
       </CardContent>
       
-      <CardFooter className="pt-2 gap-2 flex-wrap">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex-1 gap-1 transition-all hover:bg-primary/10 hover:text-primary"
-        >
-          <MessageCircle className="h-4 w-4" />
-          <span>Message</span>
+      <CardFooter className="gap-2">
+        <Button variant="outline" size="sm" className="flex-1">
+          <MessageCircle className="h-4 w-4 mr-2" />
+          Message
         </Button>
-        
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex-1 gap-1 transition-all hover:bg-primary/10 hover:text-primary"
-        >
-          <Video className="h-4 w-4" />
-          <span>Video Chat</span>
+        <Button variant="outline" size="sm" className="flex-1">
+          <Video className="h-4 w-4 mr-2" />
+          Video Chat
         </Button>
-        
-        <div className="flex gap-1.5 ml-auto">
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            className="w-auto px-2 h-8 rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive"
-          >
-            <X className="h-4 w-4 mr-1" />
-            <span className="sr-only md:not-sr-only md:inline">Ignore</span>
-          </Button>
-          
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            className="w-auto px-2 h-8 rounded-full text-green-500 hover:bg-green-500/10 hover:text-green-600"
-          >
-            <Check className="h-4 w-4 mr-1" />
-            <span className="sr-only md:not-sr-only md:inline">Accept</span>
-          </Button>
-        </div>
       </CardFooter>
     </Card>
   );
 };
 
+const LoadingState = () => (
+  <div className="flex items-center justify-center py-12">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+  </div>
+);
+
+const ErrorState = ({ message }: { message: string }) => (
+  <div className="text-center py-12">
+    <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+      <h3 className="text-lg font-semibold text-red-800 mb-2">Error Loading Matches</h3>
+      <p className="text-red-600">{message}</p>
+    </div>
+  </div>
+);
+
+const NoMatchesState = () => (
+  <div className="text-center py-12">
+    <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 max-w-md mx-auto">
+      <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+      <h3 className="text-xl font-semibold text-gray-800 mb-2">No Matches Found</h3>
+      <p className="text-gray-600 mb-4">
+        We couldn't find anyone whose skills match what you're looking for right now.
+      </p>
+      <p className="text-sm text-gray-500">
+        Try updating your profile with more skills or check back later!
+      </p>
+    </div>
+  </div>
+);
+
 const Matches = () => {
+  const { user } = useAuth();
+  const [matches, setMatches] = useState<MatchedUser[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadMatches = async () => {
+      if (!user?.id) {
+        setError('User not authenticated');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log('Loading matches for user:', user.id);
+        const foundMatches = await MatchingService.findMatches(user.id);
+        
+        setMatches(foundMatches);
+        
+        if (foundMatches.length === 0) {
+          console.log('DEBUG: No matches found - this could be because:');
+          console.log('1. User has no skills configured');
+          console.log('2. No other users in database');
+          console.log('3. No overlapping skills with other users');
+          console.log('4. Other users don\'t have complementary skills');
+        }
+      } catch (err) {
+        console.error('Error loading matches:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load matches');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMatches();
+  }, [user?.id]);
+
+  const renderContent = () => {
+    if (loading) return <LoadingState />;
+    if (error) return <ErrorState message={error} />;
+    if (matches.length === 0) return <NoMatchesState />;
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {matches.map((match) => (
+          <MatchCard key={match.id} match={match} />
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -288,21 +176,16 @@ const Matches = () => {
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold mb-3">Your Skill Matches</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Connect with people who have the skills you want to learn, and who want to learn what you already know.
+            Connect with people who can teach you skills you want to learn, and who want to learn skills you can teach.
           </p>
+          {matches.length > 0 && (
+            <p className="text-sm text-primary mt-2">
+              Found {matches.length} perfect match{matches.length !== 1 ? 'es' : ''} for you!
+            </p>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {matchesData.map((match, index) => (
-            <div 
-              key={match.id}
-              className="animate-fade-in"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <MatchCard match={match} />
-            </div>
-          ))}
-        </div>
+        {renderContent()}
       </main>
       <Footer />
     </div>
